@@ -166,6 +166,15 @@ body {
   padding: 12px;
 }
 
+.auth-notice {
+  background: #f4f8f7;
+  border: 1px solid #cbdad4;
+  border-radius: 8px;
+  color: #53615b;
+  margin: 0;
+  padding: 12px;
+}
+
 .auth-success {
   background: #edf8f2;
   border: 1px solid #b8d3c6;
@@ -185,6 +194,22 @@ body {
   padding: 11px 14px;
   text-align: center;
   text-decoration: none;
+}
+
+.auth-secondary-button {
+  background: #ffffff;
+  border: 1px solid #ccd6cf;
+  border-radius: 8px;
+  color: #25332d;
+  cursor: pointer;
+  font-weight: 700;
+  min-height: 42px;
+  padding: 10px 12px;
+}
+
+.auth-secondary-button:disabled {
+  cursor: not-allowed;
+  opacity: 0.55;
 }
 
 button,

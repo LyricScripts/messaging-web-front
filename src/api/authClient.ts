@@ -20,6 +20,15 @@ export type LogoutRequest = {
   refresh_token?: string;
 };
 
+export type VerifyEmailRequest = {
+  email: string;
+  code: string;
+};
+
+export type ResendVerificationRequest = {
+  email: string;
+};
+
 export type AuthUserResponse = {
   user_id: string;
   auth_identity_id?: string;
@@ -58,6 +67,10 @@ export type RegisterResponse = {
   message: string;
 };
 export type LoginResponse = AuthTokenResponse;
+export type VerifyEmailResponse = AuthTokenResponse;
+export type ResendVerificationResponse = {
+  message: string;
+};
 export type RefreshResponse = Pick<
   AuthTokenResponse,
   "access_token" | "token_type" | "expires_at"
@@ -70,6 +83,10 @@ export type AuthClient = {
   config: AppConfig;
   register: (request: RegisterRequest) => Promise<RegisterResponse>;
   login: (request: LoginRequest) => Promise<LoginResponse>;
+  verifyEmail: (request: VerifyEmailRequest) => Promise<VerifyEmailResponse>;
+  resendVerification: (
+    request: ResendVerificationRequest,
+  ) => Promise<ResendVerificationResponse>;
   refresh: (request: RefreshRequest) => Promise<RefreshResponse>;
   logout: (request: LogoutRequest) => Promise<void>;
   getMe: (accessToken: string) => Promise<MeResponse>;
@@ -106,6 +123,24 @@ export function createAuthClient(config: AppConfig): AuthClient {
         body: request,
         method: "POST",
       }),
+    verifyEmail: (request) =>
+      requestJson<VerifyEmailResponse>(
+        config.apiBaseUrl,
+        "/auth/verify-email",
+        {
+          body: request,
+          method: "POST",
+        },
+      ),
+    resendVerification: (request) =>
+      requestJson<ResendVerificationResponse>(
+        config.apiBaseUrl,
+        "/auth/resend-verification",
+        {
+          body: request,
+          method: "POST",
+        },
+      ),
     refresh: (request) =>
       requestJson<RefreshResponse>(config.apiBaseUrl, "/auth/refresh", {
         body: request,

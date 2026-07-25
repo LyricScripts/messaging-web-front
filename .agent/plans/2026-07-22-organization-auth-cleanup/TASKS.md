@@ -27,11 +27,11 @@ Commit: `task(org-auth-cleanup.02): align auth session contract`
 
 ## ORG-AUTH-FE-03 — Add email verification flow
 
-- [ ] After registration, show an OTP verification screen instead of entering chat.
-- [ ] Add verify and resend API calls and UI states.
-- [ ] Store tokens only after successful verification or verified login.
-- [ ] Route a verification-required login response to the OTP screen.
-- [ ] Never display whether an arbitrary email already has an account.
+- [x] After registration, show an OTP verification screen instead of entering chat.
+- [x] Add verify and resend API calls and UI states.
+- [x] Store tokens only after successful verification or verified login.
+- [x] Route a verification-required login response to the OTP screen.
+- [x] Never display whether an arbitrary email already has an account.
 
 Acceptance: unverified registration cannot render chat; successful OTP verification enters the authenticated application.
 
