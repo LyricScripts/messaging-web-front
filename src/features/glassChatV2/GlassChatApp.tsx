@@ -754,11 +754,6 @@ export function GlassChatApp({ currentUser }: GlassChatAppProps) {
                 </span>
               </div>
             </div>
-            <div className="glass-header-actions">
-              <a className="glass-demo-link" href="/demo">
-                Developer demo
-              </a>
-            </div>
           </header>
 
           <div className="glass-message-stage" aria-label="Message preview">

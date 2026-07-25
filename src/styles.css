@@ -187,57 +187,6 @@ body {
   text-decoration: none;
 }
 
-.auth-divider {
-  align-items: center;
-  color: #75817b;
-  display: grid;
-  font-size: 0.82rem;
-  gap: 12px;
-  grid-template-columns: 1fr auto 1fr;
-}
-
-.auth-divider::before,
-.auth-divider::after {
-  background: #d9e0da;
-  content: "";
-  height: 1px;
-}
-
-.auth-provider-grid {
-  display: grid;
-  gap: 10px;
-  grid-template-columns: 1fr 1fr;
-}
-
-.auth-provider-button {
-  background: #ffffff;
-  border: 1px solid #ccd6cf;
-  border-radius: 8px;
-  color: #25332d;
-  cursor: pointer;
-  font-weight: 700;
-  min-height: 42px;
-  padding: 10px 12px;
-}
-
-.auth-provider-button:hover {
-  background: #f7f9f7;
-}
-
-.auth-provider-button:disabled {
-  cursor: not-allowed;
-  opacity: 0.55;
-}
-
-.auth-provider-status {
-  background: #f6f8f7;
-  border: 1px solid #d9e0da;
-  border-radius: 8px;
-  color: #53615b;
-  margin: 0;
-  padding: 12px;
-}
-
 button,
 input,
 textarea {

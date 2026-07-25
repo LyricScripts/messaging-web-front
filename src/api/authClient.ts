@@ -20,15 +20,6 @@ export type LogoutRequest = {
   refresh_token?: string;
 };
 
-export type GoogleLoginRequest = {
-  id_token: string;
-};
-
-export type GitHubLoginRequest = {
-  code: string;
-  redirect_uri?: string;
-};
-
 export type AuthUserResponse = {
   user_id: string;
   email?: string;
@@ -51,7 +42,6 @@ export type AuthTokenResponse = {
 export type RegisterResponse = AuthTokenResponse;
 export type LoginResponse = AuthTokenResponse;
 export type RefreshResponse = AuthTokenResponse;
-export type ProviderLoginResponse = AuthTokenResponse;
 export type MeResponse = AuthUserResponse;
 
 export type AuthClient = {
@@ -59,12 +49,6 @@ export type AuthClient = {
   register: (request: RegisterRequest) => Promise<RegisterResponse>;
   login: (request: LoginRequest) => Promise<LoginResponse>;
   refresh: (request: RefreshRequest) => Promise<RefreshResponse>;
-  loginWithGoogle: (
-    request: GoogleLoginRequest,
-  ) => Promise<ProviderLoginResponse>;
-  loginWithGitHub: (
-    request: GitHubLoginRequest,
-  ) => Promise<ProviderLoginResponse>;
   logout: (accessToken: string, request?: LogoutRequest) => Promise<void>;
   getMe: (accessToken: string) => Promise<MeResponse>;
 };
@@ -102,16 +86,6 @@ export function createAuthClient(config: AppConfig): AuthClient {
       }),
     refresh: (request) =>
       requestJson<RefreshResponse>(config.apiBaseUrl, "/auth/refresh", {
-        body: request,
-        method: "POST",
-      }),
-    loginWithGoogle: (request) =>
-      requestJson<ProviderLoginResponse>(config.apiBaseUrl, "/auth/google", {
-        body: request,
-        method: "POST",
-      }),
-    loginWithGitHub: (request) =>
-      requestJson<ProviderLoginResponse>(config.apiBaseUrl, "/auth/github", {
         body: request,
         method: "POST",
       }),

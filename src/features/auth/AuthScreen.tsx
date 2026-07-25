@@ -9,7 +9,6 @@ import {
   saveTokenResponse,
 } from "../../auth/sessionStorage";
 import { loadStoredConfig } from "../../config/storage";
-import { loadAuthProviderConfig } from "../../config/env";
 
 type AuthMode = "login" | "register";
 
@@ -26,25 +25,10 @@ export function AuthScreen({ onAuthenticated }: AuthScreenProps) {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [currentUser, setCurrentUser] = useState<AuthUserResponse | null>(null);
-  const [providerMessage, setProviderMessage] = useState<string | null>(null);
-  const providerConfig = loadAuthProviderConfig();
 
   function changeMode(nextMode: AuthMode) {
     setMode(nextMode);
     setErrorMessage(null);
-    setProviderMessage(null);
-  }
-
-  function handleProviderLogin(provider: "Google" | "GitHub") {
-    const isConfigured =
-      provider === "Google"
-        ? Boolean(providerConfig.googleClientId)
-        : Boolean(providerConfig.githubClientId);
-    setProviderMessage(
-      isConfigured
-        ? `${provider} sign-in is ready for the provider authorization adapter.`
-        : `${provider} sign-in is not configured for this environment.`,
-    );
   }
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
@@ -92,7 +76,7 @@ export function AuthScreen({ onAuthenticated }: AuthScreenProps) {
           <p>
             {mode === "login"
               ? "Sign in with your messaging account to continue."
-              : "Register an account for the standalone chat demo."}
+              : "Register an account for standalone chat."}
           </p>
         </div>
 
@@ -195,36 +179,6 @@ export function AuthScreen({ onAuthenticated }: AuthScreenProps) {
                   : "Create account"}
             </button>
 
-            {mode === "login" ? (
-              <>
-                <div className="auth-divider" aria-hidden="true">
-                  <span>or</span>
-                </div>
-                <div className="auth-provider-grid">
-                  <button
-                    className="auth-provider-button"
-                    type="button"
-                    onClick={() => handleProviderLogin("Google")}
-                    disabled={isSubmitting}
-                  >
-                    Continue with Google
-                  </button>
-                  <button
-                    className="auth-provider-button"
-                    type="button"
-                    onClick={() => handleProviderLogin("GitHub")}
-                    disabled={isSubmitting}
-                  >
-                    Continue with GitHub
-                  </button>
-                </div>
-                {providerMessage ? (
-                  <p className="auth-provider-status" role="status">
-                    {providerMessage}
-                  </p>
-                ) : null}
-              </>
-            ) : null}
           </form>
         )}
       </section>

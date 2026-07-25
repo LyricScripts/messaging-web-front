@@ -4,10 +4,10 @@ Working branch: `frontend-organization-auth-cleanup`, created from current `main
 
 ## ORG-AUTH-FE-01 — Remove unrelated product surfaces
 
-- [ ] Remove Google/GitHub buttons, provider config and provider API methods.
-- [ ] Remove the support-widget demo route, configuration and feature bundle.
-- [ ] Remove the legacy `/demo` route from the application entry.
-- [ ] Remove corresponding environment examples and README sections.
+- [x] Remove Google/GitHub buttons, provider config and provider API methods.
+- [x] Remove the support-widget demo route, configuration and feature bundle.
+- [x] Remove the legacy `/demo` route from the application entry.
+- [x] Remove corresponding environment examples and README sections.
 
 Acceptance: the app exposes only register, verify, login and authenticated chat; `npm run build` passes.
 
