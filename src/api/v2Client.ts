@@ -2,9 +2,8 @@ import type { AppConfig } from "../config/env";
 
 export type BackendV2Client = {
   config: AppConfig;
-  createDemoUser: (request: DemoUserCreateRequest) => Promise<DemoUserResponse>;
   searchUsers: (jwtToken: string, query: string) => Promise<UserSearchResponse>;
-  getUser: (jwtToken: string, userId: string) => Promise<DemoUserResponse>;
+  getUser: (jwtToken: string, userId: string) => Promise<UserResponse>;
   addContact: (
     jwtToken: string,
     request: AddContactRequest,
@@ -26,13 +25,7 @@ export type BackendV2Client = {
   ) => Promise<MessageReceiptResponse>;
 };
 
-export type DemoUserCreateRequest = {
-  email: string;
-  username: string;
-  display_name?: string;
-};
-
-export type DemoUserResponse = {
+export type UserResponse = {
   id: string;
   email: string;
   username: string;
@@ -43,7 +36,7 @@ export type DemoUserResponse = {
 };
 
 export type UserSearchResponse = {
-  users: DemoUserResponse[];
+  users: UserResponse[];
 };
 
 export type AddContactRequest = {
@@ -116,11 +109,6 @@ type RequestOptions = {
 export function createBackendV2Client(config: AppConfig): BackendV2Client {
   return {
     config,
-    createDemoUser: (request: DemoUserCreateRequest) =>
-      requestJson<DemoUserResponse>(config.apiBaseUrl, "/demo/users", {
-        body: request,
-        method: "POST",
-      }),
     searchUsers: (jwtToken: string, query: string) => {
       const params = new URLSearchParams({ query });
       return requestJson<UserSearchResponse>(
@@ -130,32 +118,32 @@ export function createBackendV2Client(config: AppConfig): BackendV2Client {
       );
     },
     getUser: (jwtToken: string, userId: string) =>
-      requestJson<DemoUserResponse>(
+      requestJson<UserResponse>(
         config.apiBaseUrl,
         `/users/${encodeURIComponent(userId)}`,
         { jwtToken },
       ),
     addContact: (jwtToken: string, request: AddContactRequest) =>
-      requestJson<ContactResponse>(config.apiBaseUrl, "/contacts", {
+      requestJson<ContactResponse>(config.apiBaseUrl, "/me/contacts", {
         jwtToken,
         body: request,
         method: "POST",
       }),
     listContacts: (jwtToken: string) =>
-      requestJson<ContactListResponse>(config.apiBaseUrl, "/contacts", {
+      requestJson<ContactListResponse>(config.apiBaseUrl, "/me/contacts", {
         jwtToken,
       }),
     deleteContact: (jwtToken: string, contactId: string) => {
       return requestNoContent(
         config.apiBaseUrl,
-        `/contacts/${encodeURIComponent(contactId)}`,
+        `/me/contacts/${encodeURIComponent(contactId)}`,
         { jwtToken, method: "DELETE" },
       );
     },
     resolveContactConversation: (jwtToken: string, contactUserId: string) =>
       requestJson<ContactConversationResponse>(
         config.apiBaseUrl,
-        `/contacts/${encodeURIComponent(contactUserId)}/conversation`,
+        `/me/contacts/${encodeURIComponent(contactUserId)}/conversation`,
         {
           jwtToken,
           method: "POST",

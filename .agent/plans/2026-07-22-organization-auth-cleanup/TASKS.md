@@ -39,10 +39,10 @@ Commit: `task(org-auth-cleanup.03): add registration otp flow`
 
 ## ORG-AUTH-FE-04 — Use authenticated user/contact routes
 
-- [ ] Replace legacy `/contacts` calls with `/me/contacts` calls.
-- [ ] Remove demo-user naming and APIs from the main client.
-- [ ] Use registered users in search and direct-conversation UI.
-- [ ] Confirm WebSocket reconnect uses the refreshed messaging access token.
+- [x] Replace legacy `/contacts` calls with `/me/contacts` calls.
+- [x] Remove demo-user naming and APIs from the main client.
+- [x] Use registered users in search and direct-conversation UI.
+- [x] Confirm WebSocket reconnect uses the refreshed messaging access token.
 
 Acceptance: two verified browser users can find each other, open a conversation and exchange messages.
 
