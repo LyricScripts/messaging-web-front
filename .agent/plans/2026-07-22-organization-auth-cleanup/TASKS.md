@@ -50,11 +50,11 @@ Commit: `task(org-auth-cleanup.04): align authenticated chat routes`
 
 ## ORG-AUTH-FE-05 — Final cleanup and checks
 
-- [ ] Remove dead imports, styles, files and environment declarations.
-- [ ] Update README and the two-browser manual checklist.
-- [ ] Run `npm install` and `npm run build`.
-- [ ] Record that lint/tests are unavailable unless scripts are added by an explicit task.
-- [ ] Update task state and `.agent/state/HANDOFF.md`.
+- [x] Remove dead imports, styles, files and environment declarations.
+- [x] Update README and the two-browser manual checklist.
+- [x] Run `npm install` and `npm run build`.
+- [x] Record that lint/tests are unavailable unless scripts are added by an explicit task.
+- [x] Update task state and `.agent/state/HANDOFF.md`.
 
 Acceptance: production build succeeds and documentation describes only the supported organization flow.
 

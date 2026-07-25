@@ -20,8 +20,12 @@ has its own session storage.
 
 ## Two Accounts
 
-- [ ] Browser A registers or signs in as user A.
-- [ ] Browser B registers or signs in as user B.
+- [ ] Browser A registers user A and shows the email verification screen.
+- [ ] Browser A verifies user A with the OTP and enters authenticated chat.
+- [ ] Browser B registers user B and shows the email verification screen.
+- [ ] Browser B verifies user B with the OTP and enters authenticated chat.
+- [ ] Verified existing users can sign in without seeing the verification screen.
+- [ ] A verification-required sign-in routes back to the OTP screen without exposing whether arbitrary emails exist.
 - [ ] Each header shows the correct `/auth/me` profile.
 - [ ] Refreshing either page restores only that browser session.
 - [ ] Signing out clears the session and returns to the auth screen.

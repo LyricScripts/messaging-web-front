@@ -19,7 +19,7 @@ Standalone local chat:
 - Vite + React + TypeScript
 - Configurable backend API base URL
 - Configurable WebSocket URL
-- Email/password registration and login through the messaging backend
+- Email/password registration, OTP verification, and login through the messaging backend
 - Messaging access/refresh token session lifecycle
 - Authenticated contacts and one-to-one conversations
 - Message list
@@ -95,7 +95,7 @@ Other computers on the same local network can open:
 http://192.168.1.10:5173
 ```
 
-## Local Network Demo Guide
+## Local Network Test Guide
 
 Use this when the backend and frontend run on one Ubuntu PC and other devices
 on the same Wi-Fi/LAN need to test the chat.
@@ -157,9 +157,9 @@ Open from another device on the same network:
 http://<host-ip>:5173
 ```
 
-5. Authenticated chat flow:
+5. Authenticated organization chat flow:
 
-- Register two accounts in separate browser sessions, or sign in to two existing accounts.
+- Register two accounts in separate browser sessions and complete OTP verification, or sign in to two verified accounts.
 - Search for the other user by email or username and add them as a contact.
 - Select the contact to resolve the direct conversation and connect live chat.
 - Confirm message history loads, then send text and file messages.
@@ -203,7 +203,7 @@ Open:
 http://localhost:5173
 ```
 
-For LAN demo builds, pass the backend URLs at build time:
+For LAN test builds, pass the backend URLs at build time:
 
 ```bash
 VITE_API_BASE_URL=http://<host-ip>:8080 \
