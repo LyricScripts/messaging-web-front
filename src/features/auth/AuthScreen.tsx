@@ -17,6 +17,11 @@ type AuthScreenProps = {
   onAuthenticated?: (user: AuthUserResponse) => void;
 };
 
+/**
+ * Renders the authentication interface for signing in, registering, and verifying an email address.
+ *
+ * @param onAuthenticated - Optional callback invoked with the authenticated user after sign-in succeeds.
+ */
 export function AuthScreen({ onAuthenticated }: AuthScreenProps) {
   const [mode, setMode] = useState<AuthMode>("login");
   const [email, setEmail] = useState("");
@@ -304,6 +309,12 @@ export function AuthScreen({ onAuthenticated }: AuthScreenProps) {
   );
 }
 
+/**
+ * Determines whether an error indicates that email verification is required.
+ *
+ * @param error - The value to inspect.
+ * @returns `true` if the error is an `AuthApiError` with status 403 and code `verification_required`, `false` otherwise.
+ */
 function isVerificationRequiredError(error: unknown) {
   return (
     error instanceof AuthApiError &&
@@ -312,6 +323,12 @@ function isVerificationRequiredError(error: unknown) {
   );
 }
 
+/**
+ * Converts an authentication error into a user-facing message.
+ *
+ * @param error - The error to format
+ * @returns The error message, or a generic fallback when no message is available
+ */
 function authErrorMessage(error: unknown) {
   if (error instanceof AuthApiError) {
     return error.message;

@@ -23,6 +23,11 @@ type SessionState =
   | { status: "authenticated"; user: AuthUserResponse; message: string }
   | { status: "error"; user: null; message: string };
 
+/**
+ * Renders the authenticated messaging application and manages session access.
+ *
+ * @returns The authentication screen, session status view, or chat application for the current session
+ */
 function StandaloneApp() {
   const [sessionState, setSessionState] = useState<SessionState>(() =>
     loadStoredSession()
