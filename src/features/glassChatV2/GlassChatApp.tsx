@@ -49,6 +49,11 @@ type GlassChatAppProps = {
   currentUser: AuthUserResponse;
 };
 
+/**
+ * Renders a direct messaging interface for the current user, including contacts, conversations, messages, and attachments.
+ *
+ * @param currentUser - The authenticated user whose contacts and conversations are displayed.
+ */
 export function GlassChatApp({ currentUser }: GlassChatAppProps) {
   const webSocketRef = useRef<MessagingWebSocket | null>(null);
   const seenMessageIdsRef = useRef<Set<string>>(new Set());

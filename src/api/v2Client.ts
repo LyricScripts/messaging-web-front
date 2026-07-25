@@ -106,6 +106,12 @@ type RequestOptions = {
   method?: "GET" | "POST" | "PATCH" | "DELETE";
 };
 
+/**
+ * Creates a backend v2 API client configured with the supplied application settings.
+ *
+ * @param config - Application configuration used by the client for API requests
+ * @returns A backend v2 API client
+ */
 export function createBackendV2Client(config: AppConfig): BackendV2Client {
   return {
     config,

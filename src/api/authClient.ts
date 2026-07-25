@@ -110,6 +110,12 @@ type AuthRequestOptions = {
   method?: "GET" | "POST";
 };
 
+/**
+ * Creates an authentication client configured for the specified application.
+ *
+ * @param config - Application configuration used for authentication requests
+ * @returns An authentication client exposing registration, login, token, verification, logout, and user operations
+ */
 export function createAuthClient(config: AppConfig): AuthClient {
   return {
     config,
@@ -212,6 +218,12 @@ function buildHeaders(options: AuthRequestOptions) {
   return headers;
 }
 
+/**
+ * Normalizes an unsuccessful authentication response into an `AuthApiError`.
+ *
+ * @param response - The HTTP response containing authentication error details
+ * @returns An authentication error with a status, message, and optional error code
+ */
 export async function normalizeAuthError(response: Response) {
   const fallback = authStatusMessage(response.status);
   const payload = await response.json().catch(() => undefined);
@@ -228,6 +240,12 @@ export async function normalizeAuthError(response: Response) {
   return new AuthApiError(message, response.status, code ?? error);
 }
 
+/**
+ * Extracts a user-facing error message from a normalized authentication error payload.
+ *
+ * @param payload - The error payload containing message details.
+ * @returns The first available trimmed message, joined detail messages, or `undefined` when no message is available.
+ */
 function extractErrorMessage(payload: Record<string, unknown>) {
   if (typeof payload.message === "string" && payload.message.trim()) {
     return payload.message.trim();
@@ -246,6 +264,12 @@ function extractErrorMessage(payload: Record<string, unknown>) {
   return undefined;
 }
 
+/**
+ * Provides a user-facing message for an authentication HTTP status.
+ *
+ * @param status - The HTTP status code returned by the authentication service
+ * @returns The corresponding authentication error message
+ */
 function authStatusMessage(status: number) {
   if (status === 400) return "The authentication request was not accepted.";
   if (status === 401) return "The email, password, or session is invalid.";
@@ -256,10 +280,22 @@ function authStatusMessage(status: number) {
   return "The authentication request failed.";
 }
 
+/**
+ * Determines whether an authentication error should use a neutral message.
+ *
+ * @param status - The HTTP status code.
+ * @returns `true` if the status is 401, 403, or 409, `false` otherwise.
+ */
 function shouldUseNeutralAuthMessage(status: number) {
   return status === 401 || status === 403 || status === 409;
 }
 
+/**
+ * Determines whether a value is a non-null object record.
+ *
+ * @param value - The value to check
+ * @returns `true` if the value is a non-null object, `false` otherwise.
+ */
 function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === "object" && value !== null;
 }

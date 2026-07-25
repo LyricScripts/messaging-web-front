@@ -12,6 +12,11 @@ export type AuthSession = {
   expiresAt?: string;
 };
 
+/**
+ * Loads the authenticated session stored in browser session storage.
+ *
+ * @returns The stored authentication session, or `null` when no valid session is available.
+ */
 export function loadStoredSession(): AuthSession | null {
   try {
     const storedValue = window.sessionStorage.getItem(sessionStorageKey);
@@ -47,6 +52,12 @@ export function saveStoredSession(session: AuthSession) {
   return normalizedSession;
 }
 
+/**
+ * Persists authentication tokens from a token response.
+ *
+ * @param response - The authentication token response to persist
+ * @returns The normalized stored authentication session
+ */
 export function saveTokenResponse(response: AuthTokenResponse) {
   return saveStoredSession({
     accessToken: response.access_token,
@@ -55,6 +66,13 @@ export function saveTokenResponse(response: AuthTokenResponse) {
   });
 }
 
+/**
+ * Persists a refreshed authentication response as the current session.
+ *
+ * @param response - The refreshed authentication token response
+ * @param currentRefreshToken - The refresh token to retain when the response omits one
+ * @returns The normalized stored authentication session
+ */
 export function saveRefreshResponse(
   response: RefreshResponse,
   currentRefreshToken: string,
@@ -74,6 +92,12 @@ export function clearStoredSession() {
   }
 }
 
+/**
+ * Refreshes the stored authentication session and persists the refreshed tokens.
+ *
+ * @param authClient - The authentication client used to refresh the session
+ * @returns The refreshed and stored authentication session
+ */
 export async function refreshStoredSession(authClient: AuthClient) {
   const session = requireStoredSession();
   const response = await authClient.refresh({
@@ -82,6 +106,11 @@ export async function refreshStoredSession(authClient: AuthClient) {
   return saveRefreshResponse(response, session.refreshToken);
 }
 
+/**
+ * Logs out the stored session and clears it from browser storage.
+ *
+ * @param authClient - Client used to end the remote session
+ */
 export async function logoutAndClearSession(authClient: AuthClient) {
   const session = loadStoredSession();
   try {
@@ -103,6 +132,12 @@ function requireStoredSession() {
   return session;
 }
 
+/**
+ * Normalizes and validates an authentication session.
+ *
+ * @param session - The session to normalize.
+ * @returns A session with trimmed tokens and an optional trimmed expiration time.
+ */
 function normalizeSession(session: AuthSession): AuthSession {
   const accessToken = session.accessToken.trim();
   const refreshToken = session.refreshToken.trim();
@@ -115,6 +150,12 @@ function normalizeSession(session: AuthSession): AuthSession {
     : { accessToken, refreshToken };
 }
 
+/**
+ * Determines whether a value contains a valid authentication session.
+ *
+ * @param value - The value to validate
+ * @returns `true` if the value has non-empty string access and refresh tokens, `false` otherwise.
+ */
 function isAuthSession(value: unknown): value is AuthSession {
   if (typeof value !== "object" || value === null) {
     return false;
