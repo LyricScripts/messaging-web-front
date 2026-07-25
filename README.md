@@ -19,7 +19,7 @@ Standalone local chat:
 - Vite + React + TypeScript
 - Configurable backend API base URL
 - Configurable WebSocket URL
-- Email/password registration and login through the messaging backend
+- Email/password registration, OTP verification, and login through the messaging backend
 - Messaging access/refresh token session lifecycle
 - Authenticated contacts and one-to-one conversations
 - Message list
@@ -30,8 +30,6 @@ Standalone local chat:
 
 Future direction:
 
-- Production-ready support widget backend integration
-- Packaged website script integration
 - Compact floating chat window
 - Voice message sending
 - Optional AI bot per chat side
@@ -82,44 +80,6 @@ VITE_API_BASE_URL=http://localhost:8080
 VITE_WS_BASE_URL=ws://localhost:8080/ws
 ```
 
-## Support Widget Demo
-
-The frontend includes an isolated floating support widget preview at:
-
-```text
-http://localhost:5173/support-widget-demo
-```
-
-Configure its public values in `.env.local`:
-
-```env
-VITE_MESSAGING_API_BASE_URL=http://localhost:8080
-VITE_MESSAGING_WS_URL=ws://localhost:8080/ws
-VITE_SUPPORT_WIDGET_TENANT_ID=demo-tenant
-VITE_SUPPORT_WIDGET_BRAND_NAME=Support
-VITE_SUPPORT_WIDGET_THEME=light
-```
-
-Start the normal Vite server with `npm run dev`, then open the demo route. The
-page shows the equivalent `window.MessagingSupportWidgetConfig` host setup.
-Only tenant id, API URL, WebSocket URL, brand name, and theme are public widget
-config. Never place visitor tokens, access tokens, signing keys, email codes,
-or backend secrets in host config.
-
-The current backend implements support session start and email verification,
-but it does not yet implement the dedicated `/support/ws` visitor transport or
-support-agent authentication, inbox, assignment, and reply APIs. Live visitor
-messages and the agent browser flow remain blocked until those backend
-contracts exist; normal `/ws` user credentials must not be reused to bypass the
-boundary.
-
-Use [docs/support-widget-test-checklist.md](docs/support-widget-test-checklist.md)
-for the visitor and agent browser checks.
-
-Google and GitHub buttons remain provider hooks until their public client IDs
-and browser authorization adapters are configured. Client secrets must never be
-added to frontend environment files.
-
 For LAN testing, create a local `.env.local` file:
 
 ```env
@@ -135,7 +95,7 @@ Other computers on the same local network can open:
 http://192.168.1.10:5173
 ```
 
-## Local Network Demo Guide
+## Local Network Test Guide
 
 Use this when the backend and frontend run on one Ubuntu PC and other devices
 on the same Wi-Fi/LAN need to test the chat.
@@ -197,16 +157,15 @@ Open from another device on the same network:
 http://<host-ip>:5173
 ```
 
-5. Authenticated chat flow:
+5. Authenticated organization chat flow:
 
-- Register two accounts in separate browser sessions, or sign in to two existing accounts.
+- Register two accounts in separate browser sessions and complete OTP verification, or sign in to two verified accounts.
 - Search for the other user by email or username and add them as a contact.
 - Select the contact to resolve the direct conversation and connect live chat.
 - Confirm message history loads, then send text and file messages.
 - Confirm delivered/seen receipts update in both browser sessions.
 
-The main app is served at `/`. The legacy developer demo remains available at
-`/demo` for reference only.
+The main app is served at `/`.
 
 Make sure firewall rules allow inbound traffic to ports `5173` and `8080` on
 the Ubuntu PC during local testing.
@@ -244,7 +203,7 @@ Open:
 http://localhost:5173
 ```
 
-For LAN demo builds, pass the backend URLs at build time:
+For LAN test builds, pass the backend URLs at build time:
 
 ```bash
 VITE_API_BASE_URL=http://<host-ip>:8080 \

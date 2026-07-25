@@ -307,7 +307,6 @@
 
 .glass-contact-form__button:hover:not(:disabled),
 .glass-header-actions button:hover,
-.glass-demo-link:hover,
 .glass-composer__send:hover:not(:disabled) {
   box-shadow: 0 10px 22px rgba(37, 95, 81, 0.14);
   filter: brightness(1.02);
@@ -474,19 +473,6 @@
 .glass-conversation__identity {
   gap: 12px;
   min-width: 0;
-}
-
-.glass-demo-link {
-  align-self: center;
-  background: rgba(255, 255, 255, 0.54);
-  border: 1px solid rgba(255, 255, 255, 0.62);
-  border-radius: 8px;
-  color: #245f51;
-  flex: 0 0 auto;
-  font-size: 0.84rem;
-  font-weight: 800;
-  padding: 9px 12px;
-  text-decoration: none;
 }
 
 .glass-header-actions {
@@ -818,10 +804,6 @@
 
   .glass-message-stage {
     padding: 18px;
-  }
-
-  .glass-demo-link {
-    display: none;
   }
 
   .glass-header-actions {

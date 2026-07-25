@@ -5,8 +5,8 @@ import {
   type ContactConversationResponse,
   type ContactPresenceResponse,
   type ContactResponse,
-  type DemoUserResponse,
   type PresenceStatus,
+  type UserResponse,
 } from "../../api/v2Client";
 import {
   createHttpClient,
@@ -62,7 +62,7 @@ export function GlassChatApp({ currentUser }: GlassChatAppProps) {
     display_name: currentUser.display_name,
   };
   const [contacts, setContacts] = useState<ContactResponse[]>([]);
-  const [searchResults, setSearchResults] = useState<DemoUserResponse[]>([]);
+  const [searchResults, setSearchResults] = useState<UserResponse[]>([]);
   const [presenceByUserId, setPresenceByUserId] = useState<
     Record<string, ContactPresenceResponse>
   >({});
@@ -238,7 +238,7 @@ export function GlassChatApp({ currentUser }: GlassChatAppProps) {
     }
   }
 
-  async function handleContactAdd(user: DemoUserResponse) {
+  async function handleContactAdd(user: UserResponse) {
     const jwtToken = loadStoredAccessToken().trim();
     if (!jwtToken) return;
     setContactStatus({ state: "adding", label: "Adding contact..." });
@@ -297,8 +297,8 @@ export function GlassChatApp({ currentUser }: GlassChatAppProps) {
     }
   }
 
-  function connectGlassSocket(conversationId: string) {
-    const jwtToken = loadStoredAccessToken().trim();
+  function connectGlassSocket(conversationId: string, accessToken?: string) {
+    const jwtToken = (accessToken ?? loadStoredAccessToken()).trim();
     if (!jwtToken) {
       setSocketStatus({
         state: "error",
@@ -364,8 +364,10 @@ export function GlassChatApp({ currentUser }: GlassChatAppProps) {
       label: "Refreshing the session and reconnecting...",
     });
     try {
-      await refreshStoredSession(createAuthClient(loadStoredConfig()));
-      connectGlassSocket(conversationId);
+      const refreshedSession = await refreshStoredSession(
+        createAuthClient(loadStoredConfig()),
+      );
+      connectGlassSocket(conversationId, refreshedSession.accessToken);
     } catch {
       setSocketStatus({
         state: "error",
@@ -753,11 +755,6 @@ export function GlassChatApp({ currentUser }: GlassChatAppProps) {
                     : `Signed in as @${activeUser.username}`}
                 </span>
               </div>
-            </div>
-            <div className="glass-header-actions">
-              <a className="glass-demo-link" href="/demo">
-                Developer demo
-              </a>
             </div>
           </header>
 

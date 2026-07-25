@@ -2,6 +2,7 @@ import { useState, type FormEvent } from "react";
 import {
   AuthApiError,
   createAuthClient,
+  type AuthTokenResponse,
   type AuthUserResponse,
 } from "../../api/authClient";
 import {
@@ -9,9 +10,8 @@ import {
   saveTokenResponse,
 } from "../../auth/sessionStorage";
 import { loadStoredConfig } from "../../config/storage";
-import { loadAuthProviderConfig } from "../../config/env";
 
-type AuthMode = "login" | "register";
+type AuthMode = "login" | "register" | "verify";
 
 type AuthScreenProps = {
   onAuthenticated?: (user: AuthUserResponse) => void;
@@ -21,58 +21,83 @@ export function AuthScreen({ onAuthenticated }: AuthScreenProps) {
   const [mode, setMode] = useState<AuthMode>("login");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [username, setUsername] = useState("");
+  const [verificationCode, setVerificationCode] = useState("");
+  const [verificationEmail, setVerificationEmail] = useState("");
   const [displayName, setDisplayName] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isResending, setIsResending] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [noticeMessage, setNoticeMessage] = useState<string | null>(null);
   const [currentUser, setCurrentUser] = useState<AuthUserResponse | null>(null);
-  const [providerMessage, setProviderMessage] = useState<string | null>(null);
-  const providerConfig = loadAuthProviderConfig();
 
   function changeMode(nextMode: AuthMode) {
     setMode(nextMode);
     setErrorMessage(null);
-    setProviderMessage(null);
-  }
-
-  function handleProviderLogin(provider: "Google" | "GitHub") {
-    const isConfigured =
-      provider === "Google"
-        ? Boolean(providerConfig.googleClientId)
-        : Boolean(providerConfig.githubClientId);
-    setProviderMessage(
-      isConfigured
-        ? `${provider} sign-in is ready for the provider authorization adapter.`
-        : `${provider} sign-in is not configured for this environment.`,
-    );
+    setNoticeMessage(null);
   }
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
+    if (mode === "verify") {
+      await handleVerificationSubmit();
+      return;
+    }
+
     setErrorMessage(null);
+    setNoticeMessage(null);
     setCurrentUser(null);
     setIsSubmitting(true);
 
     const authClient = createAuthClient(loadStoredConfig());
     try {
-      const tokenResponse =
-        mode === "login"
-          ? await authClient.login({
-              email: email.trim(),
-              password,
-            })
-          : await authClient.register({
-              display_name: displayName.trim() || undefined,
-              email: email.trim(),
-              password,
-              username: username.trim() || undefined,
-            });
+      if (mode === "register") {
+        const response = await authClient.register({
+          display_name: displayName.trim() || undefined,
+          email: email.trim(),
+          password,
+        });
+        setPassword("");
+        setVerificationCode("");
+        setVerificationEmail(email.trim());
+        setMode("verify");
+        setNoticeMessage(response.message);
+        return;
+      }
 
-      saveTokenResponse(tokenResponse);
-      const user = await authClient.getMe(tokenResponse.access_token);
-      setCurrentUser(user);
-      setPassword("");
-      onAuthenticated?.(user);
+      const tokenResponse = await authClient.login({
+        email: email.trim(),
+        password,
+      });
+      await finishAuthenticatedSession(tokenResponse);
+    } catch (error) {
+      clearStoredSession();
+      if (isVerificationRequiredError(error)) {
+        setPassword("");
+        setVerificationCode("");
+        setVerificationEmail(email.trim());
+        setMode("verify");
+        setNoticeMessage("Enter the verification code sent to your email.");
+      } else {
+        setErrorMessage(authErrorMessage(error));
+      }
+    } finally {
+      setIsSubmitting(false);
+    }
+  }
+
+  async function handleVerificationSubmit() {
+    setErrorMessage(null);
+    setNoticeMessage(null);
+    setCurrentUser(null);
+    setIsSubmitting(true);
+
+    const authClient = createAuthClient(loadStoredConfig());
+    try {
+      const tokenResponse = await authClient.verifyEmail({
+        email: verificationEmail.trim() || email.trim(),
+        code: verificationCode.trim(),
+      });
+      await finishAuthenticatedSession(tokenResponse);
     } catch (error) {
       clearStoredSession();
       setErrorMessage(authErrorMessage(error));
@@ -81,18 +106,53 @@ export function AuthScreen({ onAuthenticated }: AuthScreenProps) {
     }
   }
 
+  async function handleResendVerification() {
+    const targetEmail = verificationEmail.trim() || email.trim();
+    if (!targetEmail) return;
+
+    setErrorMessage(null);
+    setNoticeMessage(null);
+    setIsResending(true);
+    try {
+      const response = await createAuthClient(
+        loadStoredConfig(),
+      ).resendVerification({ email: targetEmail });
+      setNoticeMessage(response.message);
+    } catch (error) {
+      setErrorMessage(authErrorMessage(error));
+    } finally {
+      setIsResending(false);
+    }
+  }
+
+  async function finishAuthenticatedSession(tokenResponse: AuthTokenResponse) {
+    const authClient = createAuthClient(loadStoredConfig());
+    saveTokenResponse(tokenResponse);
+    const user = await authClient.getMe(tokenResponse.access_token);
+    setCurrentUser(user);
+    setPassword("");
+    setVerificationCode("");
+    onAuthenticated?.(user);
+  }
+
   return (
     <main className="auth-page">
       <section className="auth-card" aria-labelledby="auth-title">
         <div className="auth-card__intro">
           <p className="eyebrow">Betopia messaging</p>
           <h1 id="auth-title">
-            {mode === "login" ? "Welcome back" : "Create your account"}
+            {mode === "login"
+              ? "Welcome back"
+              : mode === "register"
+                ? "Create your account"
+                : "Verify your email"}
           </h1>
           <p>
             {mode === "login"
               ? "Sign in with your messaging account to continue."
-              : "Register an account for the standalone chat demo."}
+              : mode === "register"
+                ? "Register an account for standalone chat."
+                : "Enter the code sent to your email to continue."}
           </p>
         </div>
 
@@ -114,6 +174,12 @@ export function AuthScreen({ onAuthenticated }: AuthScreenProps) {
             Register
           </button>
         </div>
+
+        {noticeMessage ? (
+          <p className="auth-notice" role="status">
+            {noticeMessage}
+          </p>
+        ) : null}
 
         {currentUser ? (
           <div className="auth-success" role="status">
@@ -137,43 +203,65 @@ export function AuthScreen({ onAuthenticated }: AuthScreenProps) {
                     disabled={isSubmitting}
                   />
                 </label>
+              </>
+            ) : null}
+
+            {mode === "verify" ? (
+              <>
                 <label className="field">
-                  <span>Username</span>
+                  <span>Email</span>
+                  <input
+                    type="email"
+                    value={verificationEmail || email}
+                    onChange={(event) => setVerificationEmail(event.target.value)}
+                    autoComplete="email"
+                    required
+                    disabled={isSubmitting}
+                  />
+                </label>
+                <label className="field">
+                  <span>Verification code</span>
                   <input
                     type="text"
-                    value={username}
-                    onChange={(event) => setUsername(event.target.value)}
-                    autoComplete="username"
+                    inputMode="numeric"
+                    value={verificationCode}
+                    onChange={(event) =>
+                      setVerificationCode(event.target.value)
+                    }
+                    autoComplete="one-time-code"
+                    required
                     disabled={isSubmitting}
                   />
                 </label>
               </>
-            ) : null}
-
-            <label className="field">
-              <span>Email</span>
-              <input
-                type="email"
-                value={email}
-                onChange={(event) => setEmail(event.target.value)}
-                autoComplete="email"
-                required
-                disabled={isSubmitting}
-              />
-            </label>
-            <label className="field">
-              <span>Password</span>
-              <input
-                type="password"
-                value={password}
-                onChange={(event) => setPassword(event.target.value)}
-                autoComplete={
-                  mode === "login" ? "current-password" : "new-password"
-                }
-                required
-                disabled={isSubmitting}
-              />
-            </label>
+            ) : (
+              <>
+                <label className="field">
+                  <span>Email</span>
+                  <input
+                    type="email"
+                    value={email}
+                    onChange={(event) => setEmail(event.target.value)}
+                    autoComplete="email"
+                    required
+                    disabled={isSubmitting}
+                  />
+                </label>
+                <label className="field">
+                  <span>Password</span>
+                  <input
+                    type="password"
+                    value={password}
+                    onChange={(event) => setPassword(event.target.value)}
+                    autoComplete={
+                      mode === "login" ? "current-password" : "new-password"
+                    }
+                    required
+                    disabled={isSubmitting}
+                  />
+                </label>
+              </>
+            )}
 
             {errorMessage ? (
               <p className="auth-error" role="alert">
@@ -189,46 +277,38 @@ export function AuthScreen({ onAuthenticated }: AuthScreenProps) {
               {isSubmitting
                 ? mode === "login"
                   ? "Signing in…"
-                  : "Creating account…"
+                  : mode === "register"
+                    ? "Creating account…"
+                    : "Verifying…"
                 : mode === "login"
                   ? "Sign in"
-                  : "Create account"}
+                  : mode === "register"
+                    ? "Create account"
+                    : "Verify email"}
             </button>
 
-            {mode === "login" ? (
-              <>
-                <div className="auth-divider" aria-hidden="true">
-                  <span>or</span>
-                </div>
-                <div className="auth-provider-grid">
-                  <button
-                    className="auth-provider-button"
-                    type="button"
-                    onClick={() => handleProviderLogin("Google")}
-                    disabled={isSubmitting}
-                  >
-                    Continue with Google
-                  </button>
-                  <button
-                    className="auth-provider-button"
-                    type="button"
-                    onClick={() => handleProviderLogin("GitHub")}
-                    disabled={isSubmitting}
-                  >
-                    Continue with GitHub
-                  </button>
-                </div>
-                {providerMessage ? (
-                  <p className="auth-provider-status" role="status">
-                    {providerMessage}
-                  </p>
-                ) : null}
-              </>
+            {mode === "verify" ? (
+              <button
+                className="auth-secondary-button"
+                type="button"
+                disabled={isSubmitting || isResending}
+                onClick={() => void handleResendVerification()}
+              >
+                {isResending ? "Sending code…" : "Resend code"}
+              </button>
             ) : null}
           </form>
         )}
       </section>
     </main>
+  );
+}
+
+function isVerificationRequiredError(error: unknown) {
+  return (
+    error instanceof AuthApiError &&
+    error.status === 403 &&
+    error.code === "verification_required"
   );
 }
 

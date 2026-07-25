@@ -1,10 +1,10 @@
 # Handoff
 
-Plan: frontend-support-widget-chat
-Branch: frontend-support-widget-chat
-Task: FE-SUPPORT-11 — Documentation and final checks
-Commit: task(frontend-support.11): document support widget chat
-Files changed: README.md, docs/support-widget-test-checklist.md, .agent/plans/2026-07-20-frontend-support-widget-chat/TASKS.md, .agent/state/HANDOFF.md
-Checks run: npm run build; npm run lint not configured
-Blockers: Backend still needs dedicated visitor WebSocket plus support-agent authentication, assignment, inbox, and reply contracts.
+Plan: 2026-07-22-organization-auth-cleanup
+Branch: frontend-organization-auth-cleanup
+Task: ORG-AUTH-FE-05 — Final cleanup and checks
+Commit: task(org-auth-cleanup.05): verify organization frontend flow
+Files changed: .env.example, README.md, docs/local-test-checklist.md, .agent/plans/2026-07-22-organization-auth-cleanup/TASKS.md, .agent/state/HANDOFF.md, src/components/*, src/features/chat/*, src/styles.css, src/types/chat.ts
+Checks run: npm install; npm run build; npm run lint unavailable (missing script); tests unavailable (missing script)
+Blockers: none
 Next task: none

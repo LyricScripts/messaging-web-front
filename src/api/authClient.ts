@@ -3,8 +3,8 @@ import type { AppConfig } from "../config/env";
 export type RegisterRequest = {
   email: string;
   password: string;
-  username?: string;
   display_name?: string;
+  avatar_url?: string;
 };
 
 export type LoginRequest = {
@@ -20,17 +20,19 @@ export type LogoutRequest = {
   refresh_token?: string;
 };
 
-export type GoogleLoginRequest = {
-  id_token: string;
+export type VerifyEmailRequest = {
+  email: string;
+  code: string;
 };
 
-export type GitHubLoginRequest = {
-  code: string;
-  redirect_uri?: string;
+export type ResendVerificationRequest = {
+  email: string;
 };
 
 export type AuthUserResponse = {
   user_id: string;
+  auth_identity_id?: string;
+  tenant_id?: string;
   email?: string;
   username?: string;
   display_name: string;
@@ -41,31 +43,52 @@ export type AuthUserResponse = {
 };
 
 export type AuthTokenResponse = {
+  authenticated?: boolean;
+  user_id?: string;
+  auth_identity_id?: string;
+  tenant_id?: string;
+  email?: string;
+  display_name?: string;
+  avatar_url?: string | null;
   access_token: string;
   refresh_token: string;
   token_type: string;
-  expires_in?: number;
+  expires_at: string;
   user?: AuthUserResponse;
 };
 
-export type RegisterResponse = AuthTokenResponse;
+export type RegisterResponse = {
+  user_id: string;
+  auth_identity_id: string;
+  tenant_id: string;
+  email: string;
+  display_name?: string;
+  avatar_url?: string | null;
+  message: string;
+};
 export type LoginResponse = AuthTokenResponse;
-export type RefreshResponse = AuthTokenResponse;
-export type ProviderLoginResponse = AuthTokenResponse;
+export type VerifyEmailResponse = AuthTokenResponse;
+export type ResendVerificationResponse = {
+  message: string;
+};
+export type RefreshResponse = Pick<
+  AuthTokenResponse,
+  "access_token" | "token_type" | "expires_at"
+> & {
+  refresh_token?: string;
+};
 export type MeResponse = AuthUserResponse;
 
 export type AuthClient = {
   config: AppConfig;
   register: (request: RegisterRequest) => Promise<RegisterResponse>;
   login: (request: LoginRequest) => Promise<LoginResponse>;
+  verifyEmail: (request: VerifyEmailRequest) => Promise<VerifyEmailResponse>;
+  resendVerification: (
+    request: ResendVerificationRequest,
+  ) => Promise<ResendVerificationResponse>;
   refresh: (request: RefreshRequest) => Promise<RefreshResponse>;
-  loginWithGoogle: (
-    request: GoogleLoginRequest,
-  ) => Promise<ProviderLoginResponse>;
-  loginWithGitHub: (
-    request: GitHubLoginRequest,
-  ) => Promise<ProviderLoginResponse>;
-  logout: (accessToken: string, request?: LogoutRequest) => Promise<void>;
+  logout: (request: LogoutRequest) => Promise<void>;
   getMe: (accessToken: string) => Promise<MeResponse>;
 };
 
@@ -100,24 +123,31 @@ export function createAuthClient(config: AppConfig): AuthClient {
         body: request,
         method: "POST",
       }),
+    verifyEmail: (request) =>
+      requestJson<VerifyEmailResponse>(
+        config.apiBaseUrl,
+        "/auth/verify-email",
+        {
+          body: request,
+          method: "POST",
+        },
+      ),
+    resendVerification: (request) =>
+      requestJson<ResendVerificationResponse>(
+        config.apiBaseUrl,
+        "/auth/resend-verification",
+        {
+          body: request,
+          method: "POST",
+        },
+      ),
     refresh: (request) =>
       requestJson<RefreshResponse>(config.apiBaseUrl, "/auth/refresh", {
         body: request,
         method: "POST",
       }),
-    loginWithGoogle: (request) =>
-      requestJson<ProviderLoginResponse>(config.apiBaseUrl, "/auth/google", {
-        body: request,
-        method: "POST",
-      }),
-    loginWithGitHub: (request) =>
-      requestJson<ProviderLoginResponse>(config.apiBaseUrl, "/auth/github", {
-        body: request,
-        method: "POST",
-      }),
-    logout: (accessToken, request = {}) =>
+    logout: (request) =>
       requestNoContent(config.apiBaseUrl, "/auth/logout", {
-        accessToken,
         body: request,
         method: "POST",
       }),
@@ -191,8 +221,11 @@ export async function normalizeAuthError(response: Response) {
   }
 
   const code = typeof payload.code === "string" ? payload.code : undefined;
-  const message = extractErrorMessage(payload) ?? fallback;
-  return new AuthApiError(message, response.status, code);
+  const error = typeof payload.error === "string" ? payload.error : undefined;
+  const message = shouldUseNeutralAuthMessage(response.status)
+    ? fallback
+    : extractErrorMessage(payload) ?? fallback;
+  return new AuthApiError(message, response.status, code ?? error);
 }
 
 function extractErrorMessage(payload: Record<string, unknown>) {
@@ -216,11 +249,15 @@ function extractErrorMessage(payload: Record<string, unknown>) {
 function authStatusMessage(status: number) {
   if (status === 400) return "The authentication request was not accepted.";
   if (status === 401) return "The email, password, or session is invalid.";
-  if (status === 403) return "This account cannot perform that action.";
-  if (status === 409) return "An account with those details already exists.";
+  if (status === 403) return "We could not complete that authentication step.";
+  if (status === 409) return "We could not complete registration for this email.";
   if (status === 422) return "Check the submitted account details.";
   if (status >= 500) return "Authentication is temporarily unavailable.";
   return "The authentication request failed.";
+}
+
+function shouldUseNeutralAuthMessage(status: number) {
+  return status === 401 || status === 403 || status === 409;
 }
 
 function isRecord(value: unknown): value is Record<string, unknown> {

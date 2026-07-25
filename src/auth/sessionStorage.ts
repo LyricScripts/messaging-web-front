@@ -1,10 +1,15 @@
-import type { AuthClient, AuthTokenResponse } from "../api/authClient";
+import type {
+  AuthClient,
+  AuthTokenResponse,
+  RefreshResponse,
+} from "../api/authClient";
 
 const sessionStorageKey = "messaging-web-front:auth-session";
 
 export type AuthSession = {
   accessToken: string;
   refreshToken: string;
+  expiresAt?: string;
 };
 
 export function loadStoredSession(): AuthSession | null {
@@ -46,6 +51,18 @@ export function saveTokenResponse(response: AuthTokenResponse) {
   return saveStoredSession({
     accessToken: response.access_token,
     refreshToken: response.refresh_token,
+    expiresAt: response.expires_at,
+  });
+}
+
+export function saveRefreshResponse(
+  response: RefreshResponse,
+  currentRefreshToken: string,
+) {
+  return saveStoredSession({
+    accessToken: response.access_token,
+    refreshToken: response.refresh_token ?? currentRefreshToken,
+    expiresAt: response.expires_at,
   });
 }
 
@@ -62,14 +79,14 @@ export async function refreshStoredSession(authClient: AuthClient) {
   const response = await authClient.refresh({
     refresh_token: session.refreshToken,
   });
-  return saveTokenResponse(response);
+  return saveRefreshResponse(response, session.refreshToken);
 }
 
 export async function logoutAndClearSession(authClient: AuthClient) {
   const session = loadStoredSession();
   try {
     if (session) {
-      await authClient.logout(session.accessToken, {
+      await authClient.logout({
         refresh_token: session.refreshToken,
       });
     }
@@ -92,7 +109,10 @@ function normalizeSession(session: AuthSession): AuthSession {
   if (!accessToken || !refreshToken) {
     throw new Error("A complete messaging session is required.");
   }
-  return { accessToken, refreshToken };
+  const expiresAt = session.expiresAt?.trim();
+  return expiresAt
+    ? { accessToken, refreshToken, expiresAt }
+    : { accessToken, refreshToken };
 }
 
 function isAuthSession(value: unknown): value is AuthSession {
