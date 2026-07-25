@@ -15,11 +15,11 @@ Commit: `task(org-auth-cleanup.01): remove unrelated frontend flows`
 
 ## ORG-AUTH-FE-02 — Align auth and session contracts
 
-- [ ] Match request/response types to the final backend OpenAPI contract.
-- [ ] Remove browser-supplied tenant/organization identity.
-- [ ] Preserve the current refresh token when refresh returns only a new access token.
-- [ ] Keep messaging access token use consistent for REST and WebSocket.
-- [ ] Normalize backend error payloads without exposing account existence.
+- [x] Match request/response types to the final backend OpenAPI contract.
+- [x] Remove browser-supplied tenant/organization identity.
+- [x] Preserve the current refresh token when refresh returns only a new access token.
+- [x] Keep messaging access token use consistent for REST and WebSocket.
+- [x] Normalize backend error payloads without exposing account existence.
 
 Acceptance: login, refresh, reload, logout and expired-access recovery work against the backend contract.
 

@@ -20,7 +20,6 @@ export function AuthScreen({ onAuthenticated }: AuthScreenProps) {
   const [mode, setMode] = useState<AuthMode>("login");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [username, setUsername] = useState("");
   const [displayName, setDisplayName] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
@@ -49,8 +48,14 @@ export function AuthScreen({ onAuthenticated }: AuthScreenProps) {
               display_name: displayName.trim() || undefined,
               email: email.trim(),
               password,
-              username: username.trim() || undefined,
             });
+
+      if (!("access_token" in tokenResponse)) {
+        setPassword("");
+        setMode("login");
+        setErrorMessage(tokenResponse.message);
+        return;
+      }
 
       saveTokenResponse(tokenResponse);
       const user = await authClient.getMe(tokenResponse.access_token);
@@ -118,16 +123,6 @@ export function AuthScreen({ onAuthenticated }: AuthScreenProps) {
                     value={displayName}
                     onChange={(event) => setDisplayName(event.target.value)}
                     autoComplete="name"
-                    disabled={isSubmitting}
-                  />
-                </label>
-                <label className="field">
-                  <span>Username</span>
-                  <input
-                    type="text"
-                    value={username}
-                    onChange={(event) => setUsername(event.target.value)}
-                    autoComplete="username"
                     disabled={isSubmitting}
                   />
                 </label>
